@@ -1,4 +1,5 @@
 import passApi from '@/apis/pass'
+import aes from '@/utils/aes'
 
 export default {
   namespaced: true,
@@ -22,22 +23,22 @@ export default {
     async getDataFromRemote({ commit, rootGetters }) {
       let res = await passApi.getStr(rootGetters.getId).then()
       if (res.data.code === 200) {
-        commit('setPassList', JSON.parse(res.data.data))
+        commit('setPassList', res.data.data ? JSON.parse(aes.decrypt(res.data.data)) : [])
       }
     },
-    addData({commit, getters, rootGetters }, passObj) {
+    addData({commit, getters, dispatch }, passObj) {
       let lst = JSON.parse(getters.passStr)
       lst.push(passObj)
       commit('setPassList', lst)
-      passApi.save(rootGetters.getId, getters.passStr)
+      dispatch('saveToRemote')
     },
-    deleteData({ state, commit, getters, rootGetters }, uuid) {
+    deleteData({ state, commit, dispatch }, uuid) {
       let passList = state.passList
       let lst = passList.filter(item => item.uuid !== uuid)
       commit('setPassList', lst)
-      passApi.save(rootGetters.getId, getters.passStr)
+      dispatch('saveToRemote')
     },
-    updateData({ commit, getters, rootGetters }, passObj) {
+    updateData({ commit, getters, dispatch }, passObj) {
       let passList = JSON.parse(getters.passStr)
       passList.forEach(item => {
         if (item.uuid === passObj.uuid) {
@@ -48,7 +49,11 @@ export default {
         }
       })
       commit('setPassList', passList)
-      passApi.save(rootGetters.getId, getters.passStr)
+      dispatch('saveToRemote')
     },
+    // 保存加密后的密码密文到数据库
+    saveToRemote({ getters, rootGetters }) {
+      passApi.save(rootGetters.getId, aes.encrypt(getters.passStr))
+    }
   }
 }
