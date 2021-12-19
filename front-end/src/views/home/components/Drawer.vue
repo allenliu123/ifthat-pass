@@ -13,13 +13,14 @@
           <el-input v-model="form.username"></el-input>
         </el-form-item>
         <el-form-item label="密码">
-          <el-input v-model="form.password"></el-input>
+          <el-input type="password" show-password v-model="form.password"></el-input>
         </el-form-item>
         <el-form-item label="备注">
           <el-input type="textarea" v-model="form.remark"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="submit">{{ type === 'add' ? '新增' : '保存'}}</el-button>
+          <el-button type="danger" v-if="type === 'edit'" @click="$emit('del', form)">删除</el-button>
         </el-form-item>
       </el-form>
     </div>

@@ -1,48 +1,28 @@
 <template>
   <div class="layout">
-    <el-table
-      :data="passData"
-      v-loading='loading'>
-      <el-table-column
-        prop="name"
-        label="名称"
-        width="180">
-      </el-table-column>
-      <el-table-column
-        prop="username"
-        label="用户名"
-        width="180">
-      </el-table-column>
-      <el-table-column
-        prop="password"
-        label="密码">
-      </el-table-column>
-      <el-table-column
-        prop="remark"
-        label="备注">
-      </el-table-column>
-      <el-table-column label="操作">
-        <template slot-scope="scope">
-          <el-button size="mini" @click="edit(scope.row)">编辑</el-button>
-          <el-button size="mini" @click="del(scope.row)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <br>
-    <el-button @click="add">新增</el-button>
-
-    <Drawer :visible.sync="drawer" :type="type" :data="drawerData"></Drawer>
-
+    <div style="text-align: right;">
+      <el-button icon="el-icon-plus" @click="add"></el-button>
+    </div>
+    <div v-for="item in passData" :key="item.uuid">
+      <PassItem :value="item" @edit="edit(item)"></PassItem>
+    </div>
+    <Drawer
+      :visible.sync="drawer"
+      :type="type"
+      :data="drawerData"
+      @del="del"
+    ></Drawer>
   </div>
 </template>
 
 <script>
-import Drawer from './Drawer'
+import Drawer from './components/Drawer'
+import PassItem from './components/PassItem'
 import { mapState, mapActions } from 'vuex'
 import uuid from '@/utils/uuid'
 
 export default {
-  components: { Drawer },
+  components: { Drawer, PassItem },
   data() {
     return {
       loading: false,
@@ -99,7 +79,10 @@ export default {
       this.drawer = true
     },
     del(data) {
-      this.deleteData(data.uuid)
+      this.$confirm(`确认删除${data.name}？`).then(() => {
+        this.deleteData(data.uuid)
+        this.drawer = false
+      })
     },
     add() {
       this.type = 'add'
@@ -118,7 +101,8 @@ export default {
 
 <style scoped>
 .layout {
-  width: 1000px;
-  margin: 20px auto;
+  max-width: 1268px;
+  margin: 16px auto;
+  padding: 0 16px;
 }
 </style>

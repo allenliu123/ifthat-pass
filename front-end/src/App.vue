@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <navbar></navbar>
+    <Navbar></Navbar>
     <router-view></router-view>
   </div>
 </template>
@@ -20,6 +20,6 @@ export default {
 body {
   margin: 0;
   padding: 0;
-  background-color: #fefefe;
+  background-color: #efefef;
 }
 </style>
