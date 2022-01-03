@@ -4,11 +4,12 @@
       <el-image src="https://static.ifthat.com/public/data/556d0dbf4d32b66a-ifpass.png"></el-image>
       <div class="nav-name">ifpass</div>
       <div>
-        <el-dropdown>
+        <el-dropdown trigger="click" @command="handleCommand">
           <span class="el-dropdown-link">
             {{ isLogin ? user : '请登录' }}<i class="el-icon-arrow-down el-icon--right"></i>
           </span>
           <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item command="changeKey">修改 key</el-dropdown-item>
             <el-dropdown-item>退出</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
@@ -25,7 +26,14 @@ export default {
     return {
     }
   },
-  computed: mapState(['user', 'isLogin'])
+  computed: mapState(['user', 'isLogin']),
+  methods: {
+    handleCommand(command) {
+      if (command === 'changeKey') {
+        this.$store.commit('pass/setVisible', true)
+      }
+    }
+  }
 }
 </script>
 
@@ -52,5 +60,9 @@ export default {
   margin-left: 20px;
   margin-right: auto;
   font-size: 36px;
+}
+.el-dropdown-link {
+  color: white;
+  cursor: pointer;
 }
 </style>

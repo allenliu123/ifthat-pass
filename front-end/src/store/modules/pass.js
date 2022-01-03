@@ -1,15 +1,21 @@
 import passApi from '@/apis/pass'
 import aes from '@/utils/aes'
+import { md5 } from '@/utils/aes'
 
 export default {
   namespaced: true,
   state: () => ({
-    passList: []
+    passList: [],
+    key: localStorage.getItem('key'), // absoietlj32fai13
+    setKeyVisible: false // 设置 key 的弹窗
   }),
 
   mutations: {
     setPassList(state, passList) {
       state.passList = passList
+    },
+    setVisible(state, flag) {
+      state.setKeyVisible = flag
     }
   },
 
@@ -20,10 +26,22 @@ export default {
   },
 
   actions: {
-    async getDataFromRemote({ commit, rootGetters }) {
+    async getDataFromRemote({ state, commit, rootGetters }) {
+      if (!state.key) {
+        console.log('key 不存在，打开设置 key 弹窗')
+        commit('setVisible', true)
+        return
+      }
       let res = await passApi.getStr(rootGetters.getId).then()
       if (res.data.code === 200) {
-        commit('setPassList', res.data.data ? JSON.parse(aes.decrypt(res.data.data)) : [])
+        const decryptStr = aes.decrypt(res.data.data, state.key)
+        console.log(decryptStr)
+        if (decryptStr === 'decrypt error') {
+          // 解密失败
+          state.setKeyVisible = true
+        } else {
+          commit('setPassList', res.data.data ? JSON.parse(decryptStr) : [])
+        }
       }
     },
     addData({commit, getters, dispatch }, passObj) {
@@ -51,9 +69,18 @@ export default {
       commit('setPassList', passList)
       dispatch('saveToRemote')
     },
-    // 保存加密后的密码密文到数据库
-    saveToRemote({ getters, rootGetters }) {
-      passApi.save(rootGetters.getId, aes.encrypt(getters.passStr))
+    // 保存加密后的密码密文到服务器的数据库
+    saveToRemote({state, getters, rootGetters }) {
+      passApi.save(rootGetters.getId, aes.encrypt(getters.passStr, state.key))
+    },
+    setKey({ state, dispatch }, str) {
+      const md5Str = md5(str)
+      localStorage.setItem('key', md5Str)
+      state.key = md5Str
+      if (state.passList.length > 0) { // 更新 key
+        dispatch('saveToRemote')
+      }
+      dispatch('getDataFromRemote')
     }
   }
 }
